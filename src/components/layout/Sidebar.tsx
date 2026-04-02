@@ -116,8 +116,8 @@ export default function Sidebar() {
                 {/* Footer */}
                 <div className="px-5 py-4 border-t border-slate-800">
                     <div className="text-[10px] text-slate-500 leading-relaxed">
-                        <p>Part 1 — Static UI Draft</p>
-                        <p className="mt-0.5">Multi-Agent AI: Phase 2</p>
+                        <p>CrewAI Multi-Agent System</p>
+                        <p className="mt-0.5">Powered by Google Gemini · Supabase</p>
                     </div>
                 </div>
             </aside>

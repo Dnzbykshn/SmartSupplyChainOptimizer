@@ -37,6 +37,11 @@ export default function SettingsPage() {
     /** Load settings from Supabase on mount */
     useEffect(() => {
         async function loadSettings() {
+            if (!supabase) {
+                setDataSource('local');
+                setLoading(false);
+                return;
+            }
             try {
                 const { data, error: fetchError } = await supabase
                     .from('user_settings')
@@ -80,6 +85,14 @@ export default function SettingsPage() {
     const handleSave = async () => {
         setSaving(true);
         setError(null);
+
+        if (!supabase) {
+            setError('Supabase not configured. Settings saved locally only.');
+            setSaved(true);
+            setSaving(false);
+            setTimeout(() => setSaved(false), 3000);
+            return;
+        }
 
         try {
             // Map camelCase frontend fields to snake_case DB columns
