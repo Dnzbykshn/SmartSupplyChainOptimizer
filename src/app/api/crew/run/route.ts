@@ -1,78 +1,55 @@
-/**
- * API Route: POST /api/crew/run
- * 
- * Triggers the CrewAI Python backend to generate new mitigation plans.
- * Spawns the Python process in the background and returns immediately.
- * The frontend polls /api/crew/plans to detect when new data arrives.
- */
-
 import { NextResponse } from 'next/server';
-import { spawn } from 'child_process';
-import path from 'path';
 
-let isRunning = false;
-
-export async function POST() {
-    if (isRunning) {
-        return NextResponse.json({
-            success: false,
-            error: 'A crew is already running. Please wait for it to complete.',
-        }, { status: 409 });
-    }
-
-    isRunning = true;
-
+export async function POST(req: Request) {
     try {
-        const backendDir = path.join(process.cwd(), 'backend');
-        const pythonPath = path.join(backendDir, '.venv', 'Scripts', 'python');
-        const scriptPath = path.join(backendDir, 'src', 'supply_chain_crew', 'main.py');
+        // Read payload from the request, fallback to defaults if none provided
+        let payload = {
+            crisis_description: "Red Sea & Suez Canal Maritime Disruption",
+            affected_routes: "Shenzhen → Rotterdam (via Red Sea), Mumbai → Genoa (via Suez Canal)"
+        };
+        
+        try {
+            const body = await req.json();
+            if (body && body.crisis_description) {
+                payload = body;
+            }
+        } catch (e) {
+            // Ignore JSON parse errors if body is empty
+        }
 
-        // Spawn the Python process in background
-        const child = spawn(pythonPath, [scriptPath], {
-            cwd: backendDir,
-            env: {
-                ...process.env,
-                PYTHONPATH: 'src',
-                PYTHONIOENCODING: 'utf-8',
+        console.log("[Next.js] Forwarding payload to FastAPI:", payload);
+
+        // Forward the request to the FastAPI server running on port 8000
+        const response = await fetch('http://127.0.0.1:8000/api/analyze-crisis', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             },
-            stdio: 'pipe',
+            body: JSON.stringify(payload)
         });
 
-        // Log output for debugging
-        child.stdout?.on('data', (data) => {
-            console.log(`[CrewAI] ${data.toString().trim()}`);
-        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            return NextResponse.json({ 
+                success: false, 
+                error: `FastAPI Error: ${response.statusText}`, 
+                details: errorData 
+            }, { status: response.status });
+        }
 
-        child.stderr?.on('data', (data) => {
-            console.error(`[CrewAI Error] ${data.toString().trim()}`);
-        });
-
-        // When the process finishes, mark as not running
-        child.on('close', (code) => {
-            isRunning = false;
-            console.log(`[CrewAI] Process exited with code ${code}`);
-        });
-
-        child.on('error', (err) => {
-            isRunning = false;
-            console.error(`[CrewAI] Process error: ${err.message}`);
-        });
-
+        const data = await response.json();
+        
         return NextResponse.json({
             success: true,
-            message: 'CrewAI analysis started. Agents are working...',
+            message: 'CrewAI analysis completed successfully.',
+            data: data
         });
 
     } catch (error) {
-        isRunning = false;
+        console.error("[Next.js] API Route Error:", error);
         return NextResponse.json({
             success: false,
-            error: `Failed to start CrewAI: ${error}`,
+            error: `Failed to communicate with FastAPI: ${error instanceof Error ? error.message : String(error)}`,
         }, { status: 500 });
     }
-}
-
-// GET: Check if a crew is currently running
-export async function GET() {
-    return NextResponse.json({ isRunning });
 }

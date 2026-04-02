@@ -24,10 +24,15 @@ risk_analysis_task:
     Be specific and cite realistic data points. This is a simulation for a
     supply chain optimization system, so provide detailed, realistic analysis.
   expected_output: >
-    A structured risk intelligence report containing: threat level assessment,
-    list of affected ports with codes, weather and secondary risk analysis,
-    3-4 relevant news headlines from major outlets, geopolitical risk factors,
-    and estimated disruption duration range.
+    A structured JSON object with the following keys:
+    - "threatLevel": one of "Critical", "High", "Medium", "Low"
+    - "eventName": short name for the crisis event
+    - "eventDescription": 2-3 sentence description of the crisis
+    - "affectedPorts": array of affected port names with IATA/UNLOC codes
+    - "weatherConditions": weather and secondary environmental risks
+    - "newsHeadlines": array of 3-5 relevant headlines from major outlets
+    - "geopoliticalFactors": array of 2-4 geopolitical risk factors
+    - "estimatedDuration": estimated disruption duration range string
   agent: global_risk_scout
 
 inventory_impact_task:
@@ -37,6 +42,8 @@ inventory_impact_task:
 
     CURRENT INVENTORY STATUS: {current_inventory_status}
 
+    {user_settings}
+
     Your analysis must include:
     1. Identification of the most critical components at risk of stockout
     2. For each critical component: current stock level, daily consumption
@@ -45,13 +52,21 @@ inventory_impact_task:
     4. Total revenue at risk in USD
     5. Specific production line impact (which lines will halt and when)
 
+    IMPORTANT: Use the "Minimum Safety Stock" parameter from the corporate
+    configuration above. Any component with fewer days of supply remaining
+    than the configured safety stock threshold should be flagged as CRITICAL.
+
     Provide precise numerical projections. Use the inventory data provided
     to calculate realistic depletion timelines.
   expected_output: >
-    An inventory impact assessment containing: a table of critical components
-    with stock levels, daily burn rates, and days-until-depletion calculations,
-    total SKUs affected count, revenue at risk figure, and production line
-    halt timeline.
+    A structured JSON object with the following keys:
+    - "criticalItems": array of objects, each with "name" (string),
+      "currentStock" (integer), "dailyBurnRate" (integer),
+      "daysUntilDepletion" (integer), "reorderPoint" (integer),
+      and "status" (one of "Critical", "Warning", "Stable")
+    - "totalSkusAffected": integer count of total SKUs impacted
+    - "revenueAtRisk": string like "$4.2M"
+    - "productionLineImpact": string summarizing production line impact
   agent: inventory_forecaster
 
 routing_strategy_task:
@@ -61,6 +76,8 @@ routing_strategy_task:
     crisis.
 
     AFFECTED ROUTES: {affected_routes}
+
+    {user_settings}
 
     STRICT REQUIREMENTS for each plan:
     - id: a unique identifier (use 'plan-a', 'plan-b', 'plan-c')
@@ -75,6 +92,18 @@ routing_strategy_task:
     - reliabilityScore: integer between 0-100 representing reliability percentage
     - details: list of 4-5 specific bullet points about the plan
 
+    CRITICAL INSTRUCTIONS based on corporate configuration:
+    - Your cost estimates MUST respect the "Maximum Air Freight Budget". If Plan C
+      (air freight) exceeds this budget, explicitly note it requires budget exception.
+    - The "Risk Tolerance" level should influence your reliability scores and
+      which plan you implicitly recommend (higher tolerance = favor cheaper plans).
+    - If a "Preferred Carrier" is specified, include that carrier in at least
+      one plan's details and routing options.
+    - The "Cost Optimization Mode" should determine the overall tone:
+      aggressive = emphasize cost savings, conservative = emphasize reliability.
+    - If "Auto-Reroute" is enabled, note in applicable plans that execution
+      can proceed automatically without human authorization.
+
     The three plans MUST follow this pattern:
     - Plan A: Conservative / lowest cost / highest risk (Wait & Monitor type)
     - Plan B: Balanced / moderate cost / moderate risk (Alternative routing type)
@@ -87,4 +116,5 @@ routing_strategy_task:
     objects. Each plan must have all 10 required fields: id, name, strategy,
     description, estimatedCost, timeframe, riskLevel (Low/Medium/High),
     co2Impact, reliabilityScore (integer 0-100), and details (array of strings).
+    Plans must clearly reflect the corporate configuration parameters.
   agent: routing_strategist

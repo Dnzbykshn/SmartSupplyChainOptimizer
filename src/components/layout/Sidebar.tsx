@@ -20,11 +20,13 @@ import {
     Menu,
     X,
     Boxes,
+    History,
 } from 'lucide-react';
 
 const navItems = [
     { href: '/', label: 'Global Dashboard', icon: LayoutDashboard },
     { href: '/crisis', label: 'Crisis Center', icon: ShieldAlert },
+    { href: '/history', label: 'Crisis History', icon: History },
     { href: '/settings', label: 'Agent Config', icon: Settings },
 ];
 

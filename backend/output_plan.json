@@ -3,52 +3,52 @@
     {
       "id": "plan-a",
       "name": "Plan A",
-      "strategy": "Tactical Slow-Steaming & Tactical Loitering",
-      "description": "A conservative approach focusing on cost containment by instructing vessels to reduce speeds and loitering in secondary anchorage zones while waiting for port reopening.",
-      "estimatedCost": "$85,000 — $150,000",
-      "timeframe": "28-35 days",
+      "strategy": "Cape of Good Hope Diversion",
+      "description": "Maintain the standard maritime rerouting around Africa, accepting the 14-day transit delay and resulting production halts.",
+      "estimatedCost": "$28,000 — $35,000 per FEU",
+      "timeframe": "45-50 days",
       "riskLevel": "High",
-      "co2Impact": "-12% vs. original sea route",
-      "reliabilityScore": 35,
+      "co2Impact": "+35% vs. original sea route",
+      "reliabilityScore": 65,
       "details": [
-        "Reduce vessel speed to 12 knots (slow-steaming) to minimize fuel burn and arrival at the 45-mile queue.",
-        "Divert Shanghai-bound vessels to Kaohsiung or Busan for 'bunker-and-wait' positioning to avoid East China Sea fog risks.",
-        "Implement immediate 14-day furlough for Line Alpha assembly staff to preserve operational cash flow during the OLED stockout.",
-        "Maintain current maritime bookings to avoid 'spot market' price surges, accepting the projected $96.6M revenue at risk."
+        "Accepts a total production halt on Line Alpha starting November 24 and Line Gamma on November 26.",
+        "Avoids Suez-related War Risk Surcharges (WRS) but incurs significantly higher fuel bunker adjustment factors.",
+        "Subject to extreme maritime weather risks and container loss potential near the Cape of Good Hope.",
+        "Relies on existing carrier capacity without the need for high-cost spot market interventions."
       ]
     },
     {
       "id": "plan-b",
       "name": "Plan B",
-      "strategy": "Intermodal Rail & Transshipment Rerouting",
-      "description": "A balanced strategy utilizing the China-Europe Railway Express for EU routes and feeder-diversion through Busan for North American cargo.",
-      "estimatedCost": "$1,400,000 — $2,100,000",
-      "timeframe": "16-22 days",
+      "strategy": "China-Europe Rail & Sea-Air Intermodal",
+      "description": "Utilize the China-Europe Railway Express for Shenzhen cargo and Sea-Air transshipment via Dubai for Mumbai cargo.",
+      "estimatedCost": "$145,000 — $195,000 per shipment",
+      "timeframe": "18-24 days",
       "riskLevel": "Medium",
-      "co2Impact": "-5% vs. original sea route",
-      "reliabilityScore": 68,
+      "co2Impact": "-12% vs. COGH sea route",
+      "reliabilityScore": 80,
       "details": [
-        "Reroute Shanghai → Hamburg/Rotterdam cargo via DB Schenker rail links departing from Xi'an or Chengdu hubs.",
-        "Utilize cross-border trucking (CBX) to move Ningbo-origin cargo to Haiphong, Vietnam for secondary vessel loading.",
-        "Leverage KRPUS (Busan) as a primary transshipment node for Long Beach cargo, bypassing the CNSHG Donghai Bridge blockade.",
-        "Negotiate priority berthing with HMM or Maersk at secondary ports to mitigate the 5-7 day diversion delays."
+        "Bypasses the Red Sea via rail corridors for OLED modules, arriving 25 days faster than sea freight.",
+        "Utilizes Jebel Ali (UAE) as a transshipment hub for Mumbai shipments, pivoting to air for the final leg to Genoa.",
+        "Reduces the projected revenue at risk by approximately 60% by shortening the production gap.",
+        "Requires intensive customs coordination at rail terminals in Xi'an and Malaszewicze."
       ]
     },
     {
       "id": "plan-c",
       "name": "Plan C",
-      "strategy": "Emergency Air Charter & Bridge-Supply",
-      "description": "An aggressive, high-speed recovery plan to bypass maritime bottlenecks entirely using dedicated air cargo for critical OLED and Li-Ion components.",
-      "estimatedCost": "$5,200,000 — $7,800,000",
+      "strategy": "Emergency Strategic Air-Bridge",
+      "description": "Deploy dedicated charter flights to airlift critical OLED modules and Li-Ion cells directly to European assembly hubs.",
+      "estimatedCost": "$950,000 — $1,250,000 per flight",
       "timeframe": "3-5 days",
       "riskLevel": "Low",
-      "co2Impact": "+350% vs. original sea route",
-      "reliabilityScore": 94,
+      "co2Impact": "+850% vs. original sea route",
+      "reliabilityScore": 98,
       "details": [
-        "Secure immediate Boeing 747-8F charter capacity via Atlas Air or Kalitta Air for 12,000 OLED modules to meet the March 8th deadline.",
-        "Bypass PVG congestion by trucking high-value electronics to Zhengzhou (CGO) or Hong Kong (HKG) for immediate air export.",
-        "Establish a 'Green Channel' for customs clearance at LAX and FRA to ensure 4-hour tarmac-to-factory transit times.",
-        "Execute 'split-shipment' protocols: send 20% of critical inventory via air to sustain production while Plan B handles the remaining 80%."
+        "Immediate dispatch of 25,000 OLED modules to eliminate the 10.25-day production shortfall.",
+        "Provides 100% protection for the $26.24M revenue-at-risk for the premium smartphone line.",
+        "Bypasses all maritime chokepoints and port congestion at Colombo and Algeciras.",
+        "Utilizes premium air-charter partners (e.g., DHL Global Forwarding or DSV) for immediate capacity."
       ]
     }
   ]

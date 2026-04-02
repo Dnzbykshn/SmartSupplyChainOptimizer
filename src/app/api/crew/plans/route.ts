@@ -25,7 +25,7 @@ export async function GET() {
             // Get the latest completed crisis run
             const { data: latestRun } = await supabase
                 .from('crisis_runs')
-                .select('id, crisis_description, created_at')
+                .select('id, crisis_description, risk_scout_output, forecaster_output, created_at')
                 .eq('status', 'completed')
                 .order('created_at', { ascending: false })
                 .limit(1)
@@ -61,6 +61,10 @@ export async function GET() {
                         crisisDescription: latestRun.crisis_description,
                         createdAt: latestRun.created_at,
                         plans: formattedPlans,
+                        agentOutputs: {
+                            riskScout: latestRun.risk_scout_output || null,
+                            forecaster: latestRun.forecaster_output || null,
+                        },
                     });
                 }
             }

@@ -2,16 +2,100 @@
 models.py — Pydantic Structured Output Models
 
 These models enforce the exact JSON schema that the frontend expects.
-They mirror the TypeScript `MitigationPlan` interface defined in
-`src/lib/types.ts` of the Next.js frontend.
+They mirror the TypeScript interfaces defined in `src/lib/types.ts`
+of the Next.js frontend.
 
-Used as `output_pydantic` on the final CrewAI task to guarantee
-type-safe, parseable JSON output from the Routing Strategist agent.
+Used as `output_pydantic` on CrewAI tasks to guarantee type-safe,
+parseable JSON output from all three agents.
 """
 
 from typing import List, Literal
 from pydantic import BaseModel, Field
 
+
+# ═══════════════════════════════════════════════════════════════════════
+# TASK 1 — Global Risk Scout Output
+# Mirrors: TypeScript `RiskScoutData` interface
+# ═══════════════════════════════════════════════════════════════════════
+
+class RiskScoutOutput(BaseModel):
+    """Structured output from the Global Risk Scout AI Agent."""
+
+    threatLevel: Literal["Critical", "High", "Medium", "Low"] = Field(
+        description="Overall threat severity classification"
+    )
+    eventName: str = Field(
+        description="Short name for the crisis event, e.g. 'Red Sea Maritime Disruption'"
+    )
+    eventDescription: str = Field(
+        description="2-3 sentence description of what is happening and its immediate impact on global supply chains"
+    )
+    affectedPorts: List[str] = Field(
+        description="List of affected ports with codes, e.g. ['Shanghai Yangshan (CNSHA)', 'Port Said (EGSAI)']"
+    )
+    weatherConditions: str = Field(
+        description="Current weather and secondary environmental risks in the affected area"
+    )
+    newsHeadlines: List[str] = Field(
+        description="3-5 relevant news headlines from major financial/logistics outlets"
+    )
+    geopoliticalFactors: List[str] = Field(
+        description="2-4 geopolitical risk factors that may influence the crisis duration"
+    )
+    estimatedDuration: str = Field(
+        description="Estimated disruption duration range, e.g. '7-14 business days (conservative estimate)'"
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TASK 2 — Inventory Forecaster Output
+# Mirrors: TypeScript `InventoryImpact` interface
+# ═══════════════════════════════════════════════════════════════════════
+
+class CriticalItem(BaseModel):
+    """A single critical inventory item at risk of stockout."""
+
+    name: str = Field(
+        description="Component name, e.g. 'OLED Display Panel 6.7\"'"
+    )
+    currentStock: int = Field(
+        description="Current stock level in units"
+    )
+    dailyBurnRate: int = Field(
+        description="Daily consumption/burn rate in units per day"
+    )
+    daysUntilDepletion: int = Field(
+        description="Calculated days until stock reaches zero at current burn rate"
+    )
+    reorderPoint: int = Field(
+        description="Reorder point threshold based on safety stock policy"
+    )
+    status: Literal["Critical", "Warning", "Stable"] = Field(
+        description="Inventory status classification based on days until depletion"
+    )
+
+
+class InventoryImpactOutput(BaseModel):
+    """Structured output from the Inventory Forecaster AI Agent."""
+
+    criticalItems: List[CriticalItem] = Field(
+        description="List of 4-6 critical inventory items at risk, ordered by urgency (most critical first)"
+    )
+    totalSkusAffected: int = Field(
+        description="Total number of SKUs impacted across all product lines"
+    )
+    revenueAtRisk: str = Field(
+        description="Total revenue at risk in human-readable format, e.g. '$4.2M'"
+    )
+    productionLineImpact: str = Field(
+        description="Summary of production line impact, e.g. '3 lines halt within 5 days'"
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# TASK 3 — Routing Strategist Output
+# Mirrors: TypeScript `MitigationPlan` interface
+# ═══════════════════════════════════════════════════════════════════════
 
 class MitigationPlan(BaseModel):
     """
@@ -75,3 +159,4 @@ class MitigationPlanList(BaseModel):
     plans: List[MitigationPlan] = Field(
         description="A list of exactly 3 mitigation plans, ordered from lowest cost/highest risk to highest cost/lowest risk"
     )
+

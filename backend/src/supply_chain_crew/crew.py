@@ -12,11 +12,19 @@ ensuring the JSON matches the frontend TypeScript interfaces exactly.
 
 from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
+from crewai_tools import SerperDevTool
 
-from supply_chain_crew.models import MitigationPlanList
+from supply_chain_crew.models import MitigationPlanList, RiskScoutOutput, InventoryImpactOutput
+from supply_chain_crew.tools import SupabaseInventoryTool
 
 # Instantiate the Gemini LLM
 gemini_llm = LLM(model="gemini/gemini-3-flash-preview")
+
+# Instantiate Search Tool
+search_tool = SerperDevTool()
+
+# Instantiate Database Tool
+inventory_tool = SupabaseInventoryTool()
 
 
 @CrewBase
@@ -36,6 +44,7 @@ class SupplyChainCrew:
             verbose=True,
             allow_delegation=False,
             llm=gemini_llm,
+            tools=[search_tool],
         )
 
     @agent
@@ -45,6 +54,7 @@ class SupplyChainCrew:
             verbose=True,
             allow_delegation=False,
             llm=gemini_llm,
+            tools=[inventory_tool],
         )
 
     @agent
@@ -62,6 +72,7 @@ class SupplyChainCrew:
     def risk_analysis_task(self) -> Task:
         return Task(
             config=self.tasks_config["risk_analysis_task"],  # type: ignore[index]
+            output_pydantic=RiskScoutOutput,
         )
 
     @task
@@ -69,6 +80,7 @@ class SupplyChainCrew:
         return Task(
             config=self.tasks_config["inventory_impact_task"],  # type: ignore[index]
             context=[self.risk_analysis_task()],
+            output_pydantic=InventoryImpactOutput,
         )
 
     @task

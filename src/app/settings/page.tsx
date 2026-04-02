@@ -12,48 +12,143 @@
  *   - Notification Frequency dropdown
  *   - Cost Optimization Mode dropdown
  * 
- * FUTURE: All configuration values will be persisted to Supabase and
- * consumed by the Multi-Agent orchestrator. Changes will trigger
- * immediate re-computation of agent recommendations.
- * 
- * ARCHITECTURAL NOTE:
- * Currently all state is managed client-side with React useState.
- * In Phase 2, this will be replaced with:
- *   1. Supabase upsert on save
- *   2. Optimistic UI updates
- *   3. Real-time sync across browser tabs
+ * INTEGRATION: All configuration values are persisted to the Supabase
+ * `user_settings` table and consumed by the CrewAI Multi-Agent orchestrator.
+ * Changes saved here directly influence agent recommendations.
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SliderControl, ToggleControl, DropdownControl } from '@/components/settings/SettingsControl';
 import { defaultAgentConfig } from '@/lib/mock-data';
 import type { AgentConfig } from '@/lib/types';
-import { Settings, Save, CheckCircle2, RotateCcw } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { Settings, Save, CheckCircle2, RotateCcw, Loader2, Database, AlertTriangle } from 'lucide-react';
 
 export default function SettingsPage() {
     const [config, setConfig] = useState<AgentConfig>({ ...defaultAgentConfig });
     const [saved, setSaved] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [dataSource, setDataSource] = useState<'supabase' | 'local'>('local');
+    const [error, setError] = useState<string | null>(null);
+
+    /** Load settings from Supabase on mount */
+    useEffect(() => {
+        async function loadSettings() {
+            try {
+                const { data, error: fetchError } = await supabase
+                    .from('user_settings')
+                    .select('*')
+                    .limit(1)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                if (data) {
+                    setConfig({
+                        riskToleranceLevel: data.risk_tolerance_level,
+                        maxAirFreightBudget: data.max_air_freight_budget,
+                        minSafetyStockDays: data.min_safety_stock_days,
+                        autoRerouteEnabled: data.auto_reroute_enabled,
+                        preferredCarrier: data.preferred_carrier,
+                        notificationFrequency: data.notification_frequency,
+                        costOptimizationMode: data.cost_optimization_mode,
+                    });
+                    setDataSource('supabase');
+                }
+            } catch (err) {
+                console.log('Failed to load settings from Supabase, using defaults:', err);
+                setDataSource('local');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadSettings();
+    }, []);
 
     /** Update a single config field */
     const updateConfig = <K extends keyof AgentConfig>(key: K, value: AgentConfig[K]) => {
         setConfig((prev) => ({ ...prev, [key]: value }));
-        setSaved(false); // Reset saved state on any change
+        setSaved(false);
+        setError(null);
     };
 
-    /** Simulate saving configuration */
-    const handleSave = () => {
-        // FUTURE: This will call a Supabase upsert
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+    /** Save configuration to Supabase */
+    const handleSave = async () => {
+        setSaving(true);
+        setError(null);
+
+        try {
+            // Map camelCase frontend fields to snake_case DB columns
+            const dbPayload = {
+                risk_tolerance_level: config.riskToleranceLevel,
+                max_air_freight_budget: config.maxAirFreightBudget,
+                min_safety_stock_days: config.minSafetyStockDays,
+                auto_reroute_enabled: config.autoRerouteEnabled,
+                preferred_carrier: config.preferredCarrier,
+                notification_frequency: config.notificationFrequency,
+                cost_optimization_mode: config.costOptimizationMode,
+                updated_at: new Date().toISOString(),
+            };
+
+            // Try to get existing settings row
+            const { data: existing } = await supabase
+                .from('user_settings')
+                .select('id')
+                .limit(1)
+                .single();
+
+            if (existing) {
+                // Update existing row
+                const { error: updateError } = await supabase
+                    .from('user_settings')
+                    .update(dbPayload)
+                    .eq('id', existing.id);
+
+                if (updateError) throw updateError;
+            } else {
+                // Insert new row
+                const { error: insertError } = await supabase
+                    .from('user_settings')
+                    .insert(dbPayload);
+
+                if (insertError) throw insertError;
+            }
+
+            setSaved(true);
+            setDataSource('supabase');
+            setTimeout(() => setSaved(false), 3000);
+        } catch (err) {
+            console.error('Failed to save settings:', err);
+            setError('Failed to save to database. Settings saved locally only.');
+            // Still show saved for local state
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
+        } finally {
+            setSaving(false);
+        }
     };
 
     /** Reset to defaults */
     const handleReset = () => {
         setConfig({ ...defaultAgentConfig });
         setSaved(false);
+        setError(null);
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 size={32} className="animate-spin text-blue-400" />
+                    <p className="text-sm text-slate-400">Loading agent configurations...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -69,6 +164,18 @@ export default function SettingsPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    {/* Data source badge */}
+                    <span className={`
+                        text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider
+                        flex items-center gap-1.5 shrink-0
+                        ${dataSource === 'supabase'
+                            ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30'
+                            : 'text-slate-400 bg-slate-500/10 border border-slate-500/30'}
+                    `}>
+                        <Database size={10} />
+                        {dataSource === 'supabase' ? 'Supabase Synced' : 'Local Only'}
+                    </span>
+
                     <button
                         onClick={handleReset}
                         className="flex items-center gap-2 px-4 py-2 text-sm text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600 rounded-lg transition-colors"
@@ -78,15 +185,25 @@ export default function SettingsPage() {
                     </button>
                     <button
                         onClick={handleSave}
+                        disabled={saving}
                         className={`
               flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition-all duration-200
-              ${saved ? 'bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-500 text-white'}
+              ${saving
+                                ? 'bg-blue-600/50 text-blue-300 cursor-wait'
+                                : saved
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-blue-600 hover:bg-blue-500 text-white'}
             `}
                     >
-                        {saved ? (
+                        {saving ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin" />
+                                Saving...
+                            </>
+                        ) : saved ? (
                             <>
                                 <CheckCircle2 size={16} />
-                                Saved!
+                                Saved to Database!
                             </>
                         ) : (
                             <>
@@ -97,6 +214,14 @@ export default function SettingsPage() {
                     </button>
                 </div>
             </div>
+
+            {/* Error banner */}
+            {error && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 flex items-center gap-2">
+                    <AlertTriangle size={16} className="text-amber-400 shrink-0" />
+                    <p className="text-sm text-amber-300">{error}</p>
+                </div>
+            )}
 
             {/* Risk & Budget Section */}
             <div>
@@ -191,13 +316,14 @@ export default function SettingsPage() {
                 </div>
             </div>
 
-            {/* Future integration note */}
-            <div className="card-glass rounded-xl p-5 border border-dashed border-slate-600">
-                <p className="text-xs text-slate-400 leading-relaxed">
-                    <strong className="text-slate-300">Phase 2 Integration Note:</strong> These configuration
-                    values will be persisted to a Supabase PostgreSQL database and consumed by the Multi-Agent
-                    AI orchestrator. Any configuration change will trigger immediate re-computation of agent
-                    recommendations across all active crisis scenarios.
+            {/* Integration status */}
+            <div className="card-glass rounded-xl p-5 border border-emerald-500/20 bg-emerald-500/5">
+                <p className="text-xs text-slate-300 leading-relaxed">
+                    <strong className="text-emerald-400">✅ AI Integration Active:</strong> These configuration
+                    values are persisted to the Supabase PostgreSQL database. When the CrewAI Multi-Agent system
+                    runs, it reads these parameters and injects them into the Routing Strategist&apos;s
+                    decision-making context. Changes saved here directly influence future AI recommendations
+                    across cost tolerance, carrier selection, and risk assessment dimensions.
                 </p>
             </div>
         </div>
