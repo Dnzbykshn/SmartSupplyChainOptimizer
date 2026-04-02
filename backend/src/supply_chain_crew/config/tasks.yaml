@@ -1,0 +1,90 @@
+# tasks.yaml — Sequential Task Pipeline Definitions
+#
+# Three tasks forming a sequential chain:
+#   risk_analysis_task → inventory_impact_task → routing_strategy_task
+#
+# Each task's output feeds into the next via CrewAI's context mechanism.
+# The final task enforces structured Pydantic output.
+
+risk_analysis_task:
+  description: >
+    Conduct a comprehensive risk analysis of the following global supply
+    chain disruption:
+
+    CRISIS EVENT: {crisis_description}
+
+    Your analysis must cover:
+    1. Threat severity classification (Critical / High / Medium / Low)
+    2. Affected ports and logistics infrastructure with IATA/UNLOC codes
+    3. Current weather conditions and secondary environmental risks
+    4. Relevant news intelligence from major financial outlets
+    5. Geopolitical factors that may accelerate or delay resolution
+    6. Estimated disruption duration with conservative and optimistic scenarios
+
+    Be specific and cite realistic data points. This is a simulation for a
+    supply chain optimization system, so provide detailed, realistic analysis.
+  expected_output: >
+    A structured risk intelligence report containing: threat level assessment,
+    list of affected ports with codes, weather and secondary risk analysis,
+    3-4 relevant news headlines from major outlets, geopolitical risk factors,
+    and estimated disruption duration range.
+  agent: global_risk_scout
+
+inventory_impact_task:
+  description: >
+    Based on the Global Risk Scout's threat assessment (provided as context),
+    analyze the inventory impact of this supply chain disruption.
+
+    CURRENT INVENTORY STATUS: {current_inventory_status}
+
+    Your analysis must include:
+    1. Identification of the most critical components at risk of stockout
+    2. For each critical component: current stock level, daily consumption
+       (burn rate), days until depletion, and reorder point threshold
+    3. Total number of SKUs affected across all product lines
+    4. Total revenue at risk in USD
+    5. Specific production line impact (which lines will halt and when)
+
+    Provide precise numerical projections. Use the inventory data provided
+    to calculate realistic depletion timelines.
+  expected_output: >
+    An inventory impact assessment containing: a table of critical components
+    with stock levels, daily burn rates, and days-until-depletion calculations,
+    total SKUs affected count, revenue at risk figure, and production line
+    halt timeline.
+  agent: inventory_forecaster
+
+routing_strategy_task:
+  description: >
+    Using both the risk assessment and inventory impact analysis (provided
+    as context), generate exactly 3 mitigation plans for the supply chain
+    crisis.
+
+    AFFECTED ROUTES: {affected_routes}
+
+    STRICT REQUIREMENTS for each plan:
+    - id: a unique identifier (use 'plan-a', 'plan-b', 'plan-c')
+    - name: short name ('Plan A', 'Plan B', 'Plan C')
+    - strategy: the core approach (e.g., 'Wait & Monitor', 'Reroute via Rail',
+      'Emergency Air Freight')
+    - description: 1-2 sentence summary of the approach
+    - estimatedCost: human-readable cost string (e.g., '$340,000 — $410,000')
+    - timeframe: delivery timeframe (e.g., '12-16 days')
+    - riskLevel: exactly one of 'Low', 'Medium', or 'High'
+    - co2Impact: environmental comparison (e.g., '-18% vs. original sea route')
+    - reliabilityScore: integer between 0-100 representing reliability percentage
+    - details: list of 4-5 specific bullet points about the plan
+
+    The three plans MUST follow this pattern:
+    - Plan A: Conservative / lowest cost / highest risk (Wait & Monitor type)
+    - Plan B: Balanced / moderate cost / moderate risk (Alternative routing type)
+    - Plan C: Aggressive / highest cost / lowest risk (Emergency air freight type)
+
+    Return the result as a structured JSON object with a "plans" key containing
+    a list of exactly 3 plan objects.
+  expected_output: >
+    A JSON object with a "plans" array containing exactly 3 mitigation plan
+    objects. Each plan must have all 10 required fields: id, name, strategy,
+    description, estimatedCost, timeframe, riskLevel (Low/Medium/High),
+    co2Impact, reliabilityScore (integer 0-100), and details (array of strings).
+  agent: routing_strategist

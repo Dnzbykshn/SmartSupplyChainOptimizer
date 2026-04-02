@@ -1,26 +1,26 @@
 /**
  * Crisis Resolution Center Page (/crisis)
  * 
- * THE MOST CRITICAL PAGE for demonstrating future AI architecture.
+ * THE MOST CRITICAL PAGE for demonstrating AI architecture.
  * Structured with distinct sections representing AI agent outputs:
  * 
  *   1. Global Risk Scout Analysis — external threat assessment
  *   2. Inventory Forecaster Impact — stock depletion projections
- *   3. Routing Strategist Recommendations — 3 mitigation plans
+ *   3. Routing Strategist Recommendations — 3 mitigation plans (from CrewAI)
  *   4. Human-in-the-Loop — plan selection & authorization
  * 
- * FUTURE: Each section will receive real-time data from its corresponding
- * AI agent via Supabase Realtime subscriptions. The authorization step
- * will trigger a Supabase Edge Function that dispatches the chosen plan
- * to the logistics execution system.
+ * The Routing Strategist section now fetches LIVE data from the CrewAI
+ * Python backend via /api/crew/plans. Falls back to mock data if the
+ * backend hasn't been run yet.
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AgentOutputCard from '@/components/crisis/AgentOutputCard';
 import PlanCard from '@/components/crisis/PlanCard';
-import { riskScoutData, inventoryImpact, mitigationPlans } from '@/lib/mock-data';
+import { riskScoutData, inventoryImpact, mitigationPlans as mockPlans } from '@/lib/mock-data';
+import type { MitigationPlan } from '@/lib/types';
 import {
     Radar,
     BarChart3,
@@ -32,11 +32,66 @@ import {
     Globe,
     Package,
     CheckCircle2,
+    Loader2,
+    Cpu,
+    Database,
 } from 'lucide-react';
 
 export default function CrisisPage() {
     const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
     const [authorized, setAuthorized] = useState(false);
+    const [mitigationPlans, setMitigationPlans] = useState<MitigationPlan[]>(mockPlans);
+    const [dataSource, setDataSource] = useState<'loading' | 'supabase' | 'crewai' | 'mock'>('loading');
+
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+    // Fetch AI-generated plans from Supabase or local file
+    const fetchPlans = async () => {
+        try {
+            const res = await fetch('/api/crew/plans');
+            const data = await res.json();
+
+            if (data.success && data.plans) {
+                setMitigationPlans(data.plans);
+                // 'supabase' = from DB, 'file' mapped to 'crewai' for display
+                setDataSource(data.source === 'supabase' ? 'supabase' : 'crewai');
+            } else {
+                setMitigationPlans(mockPlans);
+                setDataSource('mock');
+            }
+        } catch {
+            setMitigationPlans(mockPlans);
+            setDataSource('mock');
+        }
+    };
+
+    useEffect(() => {
+        fetchPlans();
+    }, []);
+
+    const runAnalysis = async () => {
+        setIsAnalyzing(true);
+        try {
+            // Trigger the Python backend
+            await fetch('/api/crew/run', { method: 'POST' });
+            
+            // Poll to check when it finishes
+            const pollInterval = setInterval(async () => {
+                const checkRes = await fetch('/api/crew/run');
+                const checkData = await checkRes.json();
+                
+                if (!checkData.isRunning) {
+                    clearInterval(pollInterval);
+                    await fetchPlans(); // Refresh plans
+                    setIsAnalyzing(false);
+                }
+            }, 2000); // Check every 2 seconds
+
+        } catch (error) {
+            console.error("Failed to start analysis", error);
+            setIsAnalyzing(false);
+        }
+    };
 
     const handleAuthorize = () => {
         if (selectedPlan) {
@@ -44,19 +99,49 @@ export default function CrisisPage() {
         }
     };
 
-    const selectedPlanData = mitigationPlans.find((p) => p.id === selectedPlan);
+    const selectedPlanData = mitigationPlans.find((p: MitigationPlan) => p.id === selectedPlan);
 
     return (
         <div className="space-y-6">
             {/* Page header */}
-            <div>
-                <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                    <ShieldCheck size={24} className="text-red-400" />
-                    Crisis Resolution Center
-                </h1>
-                <p className="text-sm text-slate-400 mt-1">
-                    Multi-Agent AI analysis &amp; human-authorized resolution workflow
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                        <ShieldCheck size={24} className="text-red-400" />
+                        Crisis Resolution Center
+                    </h1>
+                    <p className="text-sm text-slate-400 mt-1">
+                        Multi-Agent AI analysis &amp; human-authorized resolution workflow
+                    </p>
+                </div>
+                
+                <button
+                    onClick={runAnalysis}
+                    disabled={isAnalyzing}
+                    className={`
+                        relative flex items-center gap-2 px-4 py-2.5 rounded-lg border font-medium transition-all overflow-hidden
+                        ${isAnalyzing 
+                            ? 'bg-blue-600/20 border-blue-500/30 text-blue-400 cursor-wait' 
+                            : 'bg-blue-600 hover:bg-blue-500 border-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:shadow-[0_0_25px_rgba(37,99,235,0.5)]'}
+                    `}
+                >
+                    {/* Background scanning effect when analyzing */}
+                    {isAnalyzing && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+                    )}
+                    
+                    {isAnalyzing ? (
+                        <>
+                            <Loader2 size={16} className="animate-spin" />
+                            Agents Analysing...
+                        </>
+                    ) : (
+                        <>
+                            <Cpu size={16} />
+                            Start AI Run
+                        </>
+                    )}
+                </button>
             </div>
 
             {/* ─── SECTION 1: Global Risk Scout Analysis ─────────────────────── */}
@@ -219,10 +304,34 @@ export default function CrisisPage() {
                 icon={Route}
             >
                 <div className="space-y-4">
-                    <p className="text-sm text-slate-300">
-                        Based on the current disruption analysis, the Routing Strategist has generated three
-                        mitigation plans. Select the most appropriate strategy for human authorization.
-                    </p>
+                    {/* Data source indicator */}
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm text-slate-300">
+                            {dataSource === 'supabase'
+                                ? 'Live AI-generated plans from Supabase Realtime. Select a strategy for authorization.'
+                                : dataSource === 'crewai'
+                                    ? 'AI-generated plans loaded from local file. Select a strategy for authorization.'
+                                    : dataSource === 'loading'
+                                        ? 'Loading plans from CrewAI backend...'
+                                        : 'Showing sample plans. Run the CrewAI backend for live AI-generated results.'}
+                        </p>
+                        <span className={`
+                            text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider
+                            flex items-center gap-1.5 shrink-0
+                            ${dataSource === 'supabase'
+                                ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30'
+                                : dataSource === 'crewai'
+                                    ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/30'
+                                    : dataSource === 'loading'
+                                        ? 'text-blue-400 bg-blue-500/10 border border-blue-500/30'
+                                        : 'text-slate-400 bg-slate-500/10 border border-slate-500/30'}
+                        `}>
+                            {dataSource === 'supabase' && <><Database size={10} /> Supabase Live</>}
+                            {dataSource === 'crewai' && <><Cpu size={10} /> CrewAI File</>}
+                            {dataSource === 'loading' && <><Loader2 size={10} className="animate-spin" /> Loading</>}
+                            {dataSource === 'mock' && <><Database size={10} /> Mock Data</>}
+                        </span>
+                    </div>
 
                     {/* Plan cards */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

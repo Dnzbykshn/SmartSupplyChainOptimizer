@@ -1,0 +1,55 @@
+{
+  "plans": [
+    {
+      "id": "plan-a",
+      "name": "Plan A",
+      "strategy": "Tactical Slow-Steaming & Tactical Loitering",
+      "description": "A conservative approach focusing on cost containment by instructing vessels to reduce speeds and loitering in secondary anchorage zones while waiting for port reopening.",
+      "estimatedCost": "$85,000 — $150,000",
+      "timeframe": "28-35 days",
+      "riskLevel": "High",
+      "co2Impact": "-12% vs. original sea route",
+      "reliabilityScore": 35,
+      "details": [
+        "Reduce vessel speed to 12 knots (slow-steaming) to minimize fuel burn and arrival at the 45-mile queue.",
+        "Divert Shanghai-bound vessels to Kaohsiung or Busan for 'bunker-and-wait' positioning to avoid East China Sea fog risks.",
+        "Implement immediate 14-day furlough for Line Alpha assembly staff to preserve operational cash flow during the OLED stockout.",
+        "Maintain current maritime bookings to avoid 'spot market' price surges, accepting the projected $96.6M revenue at risk."
+      ]
+    },
+    {
+      "id": "plan-b",
+      "name": "Plan B",
+      "strategy": "Intermodal Rail & Transshipment Rerouting",
+      "description": "A balanced strategy utilizing the China-Europe Railway Express for EU routes and feeder-diversion through Busan for North American cargo.",
+      "estimatedCost": "$1,400,000 — $2,100,000",
+      "timeframe": "16-22 days",
+      "riskLevel": "Medium",
+      "co2Impact": "-5% vs. original sea route",
+      "reliabilityScore": 68,
+      "details": [
+        "Reroute Shanghai → Hamburg/Rotterdam cargo via DB Schenker rail links departing from Xi'an or Chengdu hubs.",
+        "Utilize cross-border trucking (CBX) to move Ningbo-origin cargo to Haiphong, Vietnam for secondary vessel loading.",
+        "Leverage KRPUS (Busan) as a primary transshipment node for Long Beach cargo, bypassing the CNSHG Donghai Bridge blockade.",
+        "Negotiate priority berthing with HMM or Maersk at secondary ports to mitigate the 5-7 day diversion delays."
+      ]
+    },
+    {
+      "id": "plan-c",
+      "name": "Plan C",
+      "strategy": "Emergency Air Charter & Bridge-Supply",
+      "description": "An aggressive, high-speed recovery plan to bypass maritime bottlenecks entirely using dedicated air cargo for critical OLED and Li-Ion components.",
+      "estimatedCost": "$5,200,000 — $7,800,000",
+      "timeframe": "3-5 days",
+      "riskLevel": "Low",
+      "co2Impact": "+350% vs. original sea route",
+      "reliabilityScore": 94,
+      "details": [
+        "Secure immediate Boeing 747-8F charter capacity via Atlas Air or Kalitta Air for 12,000 OLED modules to meet the March 8th deadline.",
+        "Bypass PVG congestion by trucking high-value electronics to Zhengzhou (CGO) or Hong Kong (HKG) for immediate air export.",
+        "Establish a 'Green Channel' for customs clearance at LAX and FRA to ensure 4-hour tarmac-to-factory transit times.",
+        "Execute 'split-shipment' protocols: send 20% of critical inventory via air to sustain production while Plan B handles the remaining 80%."
+      ]
+    }
+  ]
+}
