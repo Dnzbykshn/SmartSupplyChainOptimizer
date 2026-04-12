@@ -92,7 +92,7 @@ export default function MonitoringPage() {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             role: 'assistant',
-            content: 'Hello! I\'m your Supply Chain Intelligence Assistant powered by **LangGraph**. I can help you with:\n\n• 📊 Real-time inventory status\n• 🔍 Risk scan analysis\n• 📜 Past crisis history\n• 🌐 Latest shipping news\n\nTry asking me something like *"What\'s our current inventory status?"* or *"Summarize the latest risk scan."*',
+            content: 'Hello! I\'m your Supply Chain Intelligence Assistant powered by **LangGraph**. I can help you with:\n\n• 📊 Real-time inventory status\n• 🔍 Risk scan analysis\n• 📜 Past crisis history\n• 🌐 Latest shipping news\n• 📄 **Full supply chain report** — I\'ll query all data sources and generate a comprehensive executive report\n\nTry asking me something like *"Generate a full supply chain report"* or *"What\'s our inventory status?"*',
             timestamp: new Date(),
         },
     ]);
@@ -449,9 +449,9 @@ export default function MonitoringPage() {
                         </div>
                         <div className="flex items-center gap-4 mt-2">
                             {[
-                                'What\'s our inventory status?',
-                                'Summarize the latest risk scan',
-                                'Show past crises',
+                                'Generate full report',
+                                'Inventory status',
+                                'Latest risk scan',
                             ].map((suggestion) => (
                                 <button
                                     key={suggestion}

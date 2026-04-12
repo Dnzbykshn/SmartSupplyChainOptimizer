@@ -14,7 +14,7 @@ export default function DisclaimerBanner() {
                 <Sparkles size={14} className="shrink-0" />
                 <span>
                     <strong>University Assignment:</strong> Full-stack AI platform powered by
-                    CrewAI Multi-Agent orchestration, Supabase PostgreSQL, and Google Gemini.
+                    CrewAI &amp; LangGraph Multi-Agent orchestration, Supabase PostgreSQL, LangSmith, and Google Gemini.
                 </span>
             </div>
         </div>
