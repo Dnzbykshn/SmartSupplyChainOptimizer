@@ -15,6 +15,9 @@ os.environ["CREWAI_LLM_PROVIDER"] = "gemini"
 from supply_chain_crew.crew import SupplyChainCrew
 from supply_chain_crew.main import get_supabase_client, save_to_supabase, fetch_user_settings, format_settings_for_prompt
 
+# LangGraph imports (new — does NOT modify CrewAI above)
+from supply_chain_graph import run_risk_scan, run_chat
+
 # Create FastAPI App
 app = FastAPI(
     title="Smart Supply Chain Optimizer API",
@@ -36,9 +39,20 @@ class CrisisPayload(BaseModel):
     crisis_description: str
     affected_routes: str
     
+class ChatPayload(BaseModel):
+    message: str
+    history: list[dict] | None = None
+
+class ScanPayload(BaseModel):
+    routes: list[str] | None = None
+
 @app.get("/")
 def read_root():
-    return {"status": "online", "message": "Supply Chain CrewAI API is running."}
+    return {
+        "status": "online",
+        "engines": ["crewai", "langgraph"],
+        "message": "Supply Chain API is running. CrewAI + LangGraph active.",
+    }
 
 @app.post("/api/analyze-crisis")
 async def analyze_crisis(payload: CrisisPayload):
@@ -112,6 +126,77 @@ async def analyze_crisis(payload: CrisisPayload):
         print(f"❌ API Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
         
+# ═══════════════════════════════════════════════════════════════════════
+#  LANGGRAPH ENDPOINTS (NEW — CrewAI endpoints above are UNCHANGED)
+# ═══════════════════════════════════════════════════════════════════════
+
+@app.post("/api/langgraph/scan")
+async def langgraph_risk_scan(payload: ScanPayload = ScanPayload()):
+    """
+    Triggers a LangGraph risk monitoring scan across shipping routes.
+    Searches the web for recent disruption news and scores each route.
+    """
+    try:
+        print("🛡️ API: Starting LangGraph Risk Scan...")
+        result = run_risk_scan(routes=payload.routes)
+        return {
+            "status": "success",
+            "engine": "langgraph",
+            **result,
+        }
+    except Exception as e:
+        print(f"❌ LangGraph Scan Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/langgraph/chat")
+async def langgraph_chat(payload: ChatPayload):
+    """
+    Sends a message to the LangGraph AI Chat Assistant.
+    The agent can query inventory, crisis history, and risk data.
+    """
+    try:
+        print(f"💬 API: Chat message received: {payload.message[:80]}...")
+        result = run_chat(
+            user_message=payload.message,
+            chat_history=payload.history,
+        )
+        return {
+            "status": "success",
+            "engine": "langgraph",
+            **result,
+        }
+    except Exception as e:
+        print(f"❌ LangGraph Chat Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/langgraph/scans")
+async def get_risk_scans():
+    """
+    Returns the latest risk scan results from Supabase.
+    """
+    try:
+        supabase = get_supabase_client()
+        if not supabase:
+            raise HTTPException(status_code=500, detail="Supabase not configured")
+
+        response = (
+            supabase.table("risk_scans")
+            .select("*")
+            .order("scanned_at", desc=True)
+            .limit(20)
+            .execute()
+        )
+        return {
+            "status": "success",
+            "scans": response.data or [],
+        }
+    except Exception as e:
+        print(f"❌ Scans Fetch Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     import uvicorn
     # To run: .venv\Scripts\python src/api.py

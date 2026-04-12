@@ -21,11 +21,13 @@ import {
     X,
     Boxes,
     History,
+    Radar,
 } from 'lucide-react';
 
 const navItems = [
     { href: '/', label: 'Global Dashboard', icon: LayoutDashboard },
     { href: '/crisis', label: 'Crisis Center', icon: ShieldAlert },
+    { href: '/monitoring', label: 'Intelligence', icon: Radar },
     { href: '/history', label: 'Crisis History', icon: History },
     { href: '/settings', label: 'Agent Config', icon: Settings },
 ];
@@ -116,7 +118,7 @@ export default function Sidebar() {
                 {/* Footer */}
                 <div className="px-5 py-4 border-t border-slate-800">
                     <div className="text-[10px] text-slate-500 leading-relaxed">
-                        <p>CrewAI Multi-Agent System</p>
+                        <p>CrewAI + LangGraph Multi-Agent System</p>
                         <p className="mt-0.5">Powered by Google Gemini · Supabase</p>
                     </div>
                 </div>
