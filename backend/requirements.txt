@@ -13,3 +13,6 @@ langchain-google-genai>=2.1.0
 langchain-community>=0.3.0
 langsmith>=0.3.0
 requests>=2.31.0
+
+# ─── MCP (Model Context Protocol) server ─────────────
+mcp>=1.2.0

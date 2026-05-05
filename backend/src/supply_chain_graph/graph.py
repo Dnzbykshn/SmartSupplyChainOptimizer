@@ -26,8 +26,8 @@ from supply_chain_graph.models import RiskScanResult, RouteRisk
 from supply_chain_graph.tools_langchain import (
     search_supply_chain_news,
     query_inventory,
-    ALL_CHAT_TOOLS,
 )
+from supply_chain_graph.tools_mcp import get_chat_tools
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -285,9 +285,15 @@ real data from the tools, never fabricated. If a tool returns no data, note it a
 
 
 def agent_node(state: ChatState) -> dict:
-    """The thinking node: calls Gemini with tools bound."""
+    """The thinking node: calls Gemini with tools bound.
+
+    Tools come from get_chat_tools() — when USE_MCP_TOOLS=true the agent
+    consumes them via the supply-chain-mcp server (Phase 2 demo path);
+    otherwise it uses the direct LangChain tools.
+    """
     llm = _get_llm(temperature=0.4)
-    llm_with_tools = llm.bind_tools(ALL_CHAT_TOOLS)
+    chat_tools = get_chat_tools()
+    llm_with_tools = llm.bind_tools(chat_tools)
     
     messages = state["messages"]
     
@@ -310,14 +316,14 @@ def should_continue(state: ChatState) -> str:
 # Build the Chat Graph (ReAct pattern)
 def _build_chat_graph():
     builder = StateGraph(ChatState)
-    
+
     builder.add_node("agent", agent_node)
-    builder.add_node("tools", ToolNode(ALL_CHAT_TOOLS))
-    
+    builder.add_node("tools", ToolNode(get_chat_tools()))
+
     builder.add_edge(START, "agent")
     builder.add_conditional_edges("agent", should_continue, {"tools": "tools", END: END})
     builder.add_edge("tools", "agent")  # After tool execution, go back to agent
-    
+
     return builder.compile()
 
 

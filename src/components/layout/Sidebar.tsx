@@ -22,6 +22,7 @@ import {
     Boxes,
     History,
     Radar,
+    Network,
 } from 'lucide-react';
 
 const navItems = [
@@ -29,6 +30,7 @@ const navItems = [
     { href: '/crisis', label: 'Crisis Center', icon: ShieldAlert },
     { href: '/monitoring', label: 'Intelligence', icon: Radar },
     { href: '/history', label: 'Crisis History', icon: History },
+    { href: '/mcp', label: 'MCP Inspector', icon: Network },
     { href: '/settings', label: 'Agent Config', icon: Settings },
 ];
 
