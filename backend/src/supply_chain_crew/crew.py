@@ -16,15 +16,24 @@ from crewai_tools import SerperDevTool
 
 from supply_chain_crew.models import MitigationPlanList, RiskScoutOutput, InventoryImpactOutput
 from supply_chain_crew.tools import SupabaseInventoryTool
+from supply_chain_crew.tools_mcp import use_mcp_tools, find_tool
 
 # Instantiate the Gemini LLM
 gemini_llm = LLM(model="gemini/gemini-3-flash-preview")
 
-# Instantiate Search Tool
-search_tool = SerperDevTool()
 
-# Instantiate Database Tool
-inventory_tool = SupabaseInventoryTool()
+def _scout_tools():
+    """Tools for the Global Risk Scout agent — MCP search if enabled, else Serper."""
+    if use_mcp_tools():
+        return [find_tool("search_supply_chain_news")]
+    return [SerperDevTool()]
+
+
+def _forecaster_tools():
+    """Tools for the Inventory Forecaster — MCP query_inventory if enabled, else direct."""
+    if use_mcp_tools():
+        return [find_tool("query_inventory")]
+    return [SupabaseInventoryTool()]
 
 
 @CrewBase
@@ -44,7 +53,7 @@ class SupplyChainCrew:
             verbose=True,
             allow_delegation=False,
             llm=gemini_llm,
-            tools=[search_tool],
+            tools=_scout_tools(),
         )
 
     @agent
@@ -54,7 +63,7 @@ class SupplyChainCrew:
             verbose=True,
             allow_delegation=False,
             llm=gemini_llm,
-            tools=[inventory_tool],
+            tools=_forecaster_tools(),
         )
 
     @agent

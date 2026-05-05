@@ -57,7 +57,9 @@ shows every `tools/call` happening in real time (sourced from the
 | `backend/src/mcp_server/README.md` | Server-specific docs + Claude Desktop config. |
 | `backend/src/supply_chain_graph/tools_mcp.py` | Loader that pulls MCP tools into LangGraph via `langchain-mcp-adapters`. |
 | `backend/src/supply_chain_graph/graph.py` | Chat graph now uses `get_chat_tools()` — switches to MCP when `USE_MCP_TOOLS=true`. |
-| `backend/requirements.txt` | Added `mcp>=1.2.0`. |
+| `backend/src/supply_chain_crew/tools_mcp.py` | Loader that pulls MCP tools into CrewAI via `crewai_tools.MCPServerAdapter`. |
+| `backend/src/supply_chain_crew/crew.py` | Risk Scout + Inventory Forecaster agents now switch to MCP-backed tools when `USE_MCP_TOOLS=true`. |
+| `backend/requirements.txt` | Added `mcp`, `langchain-mcp-adapters`, `crewai-tools[mcp]`. |
 | `supabase/mcp_activity.sql` | New table — every MCP tool call gets logged here. |
 | `src/app/mcp/page.tsx` | The live MCP Inspector UI page. |
 | `src/components/layout/Sidebar.tsx` | Added "MCP Inspector" nav item. |
@@ -150,9 +152,10 @@ feed in your browser.
 
 ## Toggling MCP mode
 
-The LangGraph chat uses MCP when `USE_MCP_TOOLS=true` is in the backend's
-environment. Without it, the chat uses the original direct-Supabase
-LangChain tools as a fallback. This makes it easy to:
+**Both** orchestrators (CrewAI and LangGraph) check the `USE_MCP_TOOLS` env
+flag. When it's truthy, they consume tools from the same `supply-chain-mcp`
+server. Without it, they fall back to their original direct tools. This
+makes it easy to:
 
 - Demo the same chat working in both modes side-by-side
 - Keep the app functional even if the MCP server has issues
