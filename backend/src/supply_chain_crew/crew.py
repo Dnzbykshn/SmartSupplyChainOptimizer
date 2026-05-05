@@ -18,8 +18,7 @@ from supply_chain_crew.models import MitigationPlanList, RiskScoutOutput, Invent
 from supply_chain_crew.tools import SupabaseInventoryTool
 from supply_chain_crew.tools_mcp import use_mcp_tools, find_tool
 
-# Instantiate the Gemini LLM
-gemini_llm = LLM(model="gemini/gemini-3-flash-preview")
+llm = LLM(model="openai/gpt-4o-mini")
 
 
 def _scout_tools():
@@ -52,7 +51,7 @@ class SupplyChainCrew:
             config=self.agents_config["global_risk_scout"],  # type: ignore[index]
             verbose=True,
             allow_delegation=False,
-            llm=gemini_llm,
+            llm=llm,
             tools=_scout_tools(),
         )
 
@@ -62,7 +61,7 @@ class SupplyChainCrew:
             config=self.agents_config["inventory_forecaster"],  # type: ignore[index]
             verbose=True,
             allow_delegation=False,
-            llm=gemini_llm,
+            llm=llm,
             tools=_forecaster_tools(),
         )
 
@@ -72,7 +71,7 @@ class SupplyChainCrew:
             config=self.agents_config["routing_strategist"],  # type: ignore[index]
             verbose=True,
             allow_delegation=False,
-            llm=gemini_llm,
+            llm=llm,
         )
 
     # ─── Task Definitions ─────────────────────────────────────────────

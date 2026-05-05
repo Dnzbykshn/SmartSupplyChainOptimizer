@@ -25,14 +25,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Validate API key is present
-if not os.getenv("GEMINI_API_KEY"):
-    print("ERROR: GEMINI_API_KEY not found in environment.")
-    print("Please add your Gemini API key to backend/.env")
+if not os.getenv("OPENAI_API_KEY"):
+    print("ERROR: OPENAI_API_KEY not found in environment.")
+    print("Please add your OpenAI API key to backend/.env")
     sys.exit(1)
-
-# Set the model for CrewAI (uses LiteLLM format for Gemini)
-os.environ["OPENAI_API_KEY"] = "NA"  # Prevent CrewAI from complaining
-os.environ["CREWAI_LLM_PROVIDER"] = "gemini"
 
 from supply_chain_crew.crew import SupplyChainCrew
 
@@ -192,7 +188,7 @@ def main():
     print("=" * 70)
     print(f"\n📡 Crisis: Red Sea & Suez Canal Disruption (Live Web Search)")
     print(f"🤖 Agents: Global Risk Scout → Inventory Forecaster → Routing Strategist")
-    print(f"🧠 LLM: Google Gemini")
+    print(f"🧠 LLM: OpenAI gpt-4o-mini")
     print(f"\n{'─' * 70}\n")
 
     # ── Initialize Supabase ───────────────────────────────────────────

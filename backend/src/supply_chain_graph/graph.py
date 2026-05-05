@@ -8,7 +8,7 @@ Two compiled StateGraphs:
   2. chat_graph: ReAct agent loop for conversational AI assistant
      START → agent → (tool call? → tools → agent) → END
 
-Both use Google Gemini via ChatGoogleGenerativeAI.
+Both use OpenAI via ChatOpenAI.
 LangSmith tracing is automatic when LANGCHAIN_TRACING_V2=true.
 """
 
@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 
 from supply_chain_graph.state import ScanState, ChatState
@@ -35,10 +35,10 @@ from supply_chain_graph.tools_mcp import get_chat_tools
 # ═══════════════════════════════════════════════════════════════════════
 
 def _get_llm(temperature: float = 0.3):
-    """Get a ChatGoogleGenerativeAI instance."""
-    return ChatGoogleGenerativeAI(
-        model="gemini-2.0-flash",
-        google_api_key=os.getenv("GEMINI_API_KEY"),
+    """Get a ChatOpenAI instance."""
+    return ChatOpenAI(
+        model="gpt-4o-mini",
+        api_key=os.getenv("OPENAI_API_KEY"),
         temperature=temperature,
     )
 
@@ -94,7 +94,7 @@ def scan_news_node(state: ScanState) -> dict:
 
 
 def analyze_risks_node(state: ScanState) -> dict:
-    """Node 3: Use Gemini to analyze the news and score each route's risk."""
+    """Node 3: Use the LLM to analyze the news and score each route's risk."""
     llm = _get_llm(temperature=0.2)
     routes = state["routes"]
     raw_news = state["raw_news"]
@@ -285,7 +285,7 @@ real data from the tools, never fabricated. If a tool returns no data, note it a
 
 
 def agent_node(state: ChatState) -> dict:
-    """The thinking node: calls Gemini with tools bound.
+    """The thinking node: calls the LLM with tools bound.
 
     Tools come from get_chat_tools() — when USE_MCP_TOOLS=true the agent
     consumes them via the supply-chain-mcp server (Phase 2 demo path);

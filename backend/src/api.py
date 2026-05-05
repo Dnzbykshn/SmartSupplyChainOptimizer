@@ -1,4 +1,3 @@
-import os
 import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,10 +6,6 @@ from dotenv import load_dotenv
 
 # Ensure env vars are loaded before anything else
 load_dotenv()
-
-# We need to set up CrewAI vars before importing
-os.environ["OPENAI_API_KEY"] = "NA"
-os.environ["CREWAI_LLM_PROVIDER"] = "gemini"
 
 from supply_chain_crew.crew import SupplyChainCrew
 from supply_chain_crew.main import get_supabase_client, save_to_supabase, fetch_user_settings, format_settings_for_prompt
