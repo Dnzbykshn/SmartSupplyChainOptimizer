@@ -1,37 +1,144 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Smart Supply Chain Optimizer
 
-## Getting Started
+Akıllı tedarik zinciri optimizasyon platformu. **Next.js** frontend, **Python** (CrewAI + LangGraph + MCP) backend ve **Supabase** veritabanı kullanır.
 
-First, run the development server:
+## Mimari
+
+- **Frontend:** Next.js 16 + React 19 + TailwindCSS 4
+- **Backend:** FastAPI + CrewAI + LangGraph + MCP (Model Context Protocol)
+- **Veritabanı:** Supabase (Postgres)
+- **LLM:** OpenAI (CrewAI ve LangChain üzerinden)
+
+## Ön Gereksinimler
+
+- **Node.js** 20+ (Next.js 16 için)
+- **Python** 3.10+ (3.11 / 3.12 önerilir)
+- **Git**
+- **Supabase** projesi (URL + anon key)
+- **OpenAI API key**
+
+## Kurulum
+
+### 1. Repoyu klonla
+
+```bash
+git clone <repo-url>
+cd SmartSupplyChainOptimizer
+```
+
+### 2. Frontend bağımlılıkları
+
+```bash
+npm install
+```
+
+Kök dizinde `.env.local` oluştur:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://<proje>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
+```
+
+### 3. Supabase şeması
+
+Supabase SQL Editor'da sırayla çalıştır (veya `supabase db push` ile):
+
+- `supabase/schema.sql`
+- `supabase/migrations/` altındaki dosyalar
+- `supabase/mcp_activity.sql` (MCP aktivite log tablosu)
+
+### 4. Backend kurulumu
+
+```bash
+cd backend
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+`backend/.env` oluştur:
+
+```env
+OPENAI_API_KEY=sk-...
+SUPABASE_URL=https://<proje>.supabase.co
+SUPABASE_KEY=<anon-or-service-key>
+# opsiyonel
+LANGSMITH_API_KEY=...
+```
+
+### 5. MCP yapılandırması (opsiyonel)
+
+`.mcp.json` Supabase MCP sunucusunu işaret eder. `project_ref` değerini kendi Supabase proje referansınla değiştir:
+
+```json
+{
+  "mcpServers": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=<senin-proje-ref>"
+    }
+  }
+}
+```
+
+## Çalıştırma
+
+İki ayrı terminal aç:
+
+**Backend (FastAPI, port 8000):**
+
+```bash
+cd backend
+uvicorn src.api:app --reload --port 8000
+```
+
+**Frontend (Next.js, port 3000):**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Tarayıcıda aç: [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Hızlı kontrol listesi
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [ ] Node.js ve Python kurulu
+- [ ] `npm install` tamamlandı
+- [ ] `.env.local` (Supabase keys) mevcut
+- [ ] Supabase şeması yüklendi
+- [ ] `pip install -r backend/requirements.txt` tamamlandı
+- [ ] `backend/.env` (OpenAI + Supabase) mevcut
+- [ ] Backend `:8000` ayakta
+- [ ] Frontend `:3000` ayakta
 
-## Learn More
+## Proje yapısı
 
-To learn more about Next.js, take a look at the following resources:
+```
+.
+├── src/                  # Next.js uygulaması (App Router)
+├── public/               # Statik varlıklar
+├── backend/
+│   ├── src/
+│   │   ├── api.py                # FastAPI giriş noktası
+│   │   ├── supply_chain_crew/    # CrewAI ajanları
+│   │   ├── supply_chain_graph/   # LangGraph akışı
+│   │   └── mcp_server/           # MCP sunucu entegrasyonu
+│   └── requirements.txt
+├── supabase/
+│   ├── schema.sql
+│   ├── migrations/
+│   └── mcp_activity.sql
+├── .mcp.json             # MCP sunucu konfigürasyonu
+└── package.json
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://chatgpt.com/) - an interactive Next.js tutorial.
+## Ek dokümanlar
 
-You can check out [the Next.js GitHub repository](https://gemini.google.com/app) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
+- [MCP_DEMO.md](MCP_DEMO.md) — MCP entegrasyon demosu
+- [MCP_IMPLEMENTATION_REPORT.md](MCP_IMPLEMENTATION_REPORT.md) — MCP mimari raporu
+- [docs/](docs/) — ek teknik notlar
